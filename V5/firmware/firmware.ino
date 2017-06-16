@@ -11,20 +11,20 @@
  * A7 - EMG Signal
  * D3 - PWM / Interrupt / Hitch Digital Pin
  * D5 - PWM / Hitch Digital Pin
- * 
+ *
  * D4 - Joy Up
  * D6 - Joy Down
  * D7 - Joy Left
  * D8 - Joy Right
  * D9 - Joy Center Press
- * 
- * 
+ *
+ *
  */
 
 /*
- * 
+ *
  *  LIBRARIES
- * 
+ *
  */
 //These libraries are from Adafruit that run the screen driver
 #include <Adafruit_SSD1306.h>
@@ -39,7 +39,7 @@
 
 
 static const unsigned char PROGMEM logo16_glcd_bmp[] =
-{ B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111,  
+{ B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111,
   B10000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
   B10000000, B00000000, B00000000, B00000000, B11111110, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
   B10000000, B00000000, B00000000, B00000011, B11111111, B10000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
@@ -141,12 +141,12 @@ int PIDstate = 0;
 double Kp = 2;
 double Ki = 5;
 double Kd = 1;
-double setpoint = 0;
+double handSetpoint = 150;
 double input = 0;
 double output = 0;
 
 void setup() {
-  
+
   //Serial
   Serial.begin(9600);
   Serial.println("ATLAS ARM V5.0");
@@ -162,16 +162,18 @@ void setup() {
   loadHandMenu(0);
 
   //PID
-  PID myPID(&input, &output, &setpoint, Kp, Ki, Kd, DIRECT);
-  myPID.SetMode(AUTOMATIC);
-  
+  PID handPID(&input, &output, &handSetpoint, Kp, Ki, Kd, DIRECT);
+  handPID.SetMode(AUTOMATIC);
+
 }
 
 void loop() {
   //main loop of OS!
+
+  //serial out a bit of data for diagnostics
   Serial.print("Menu: " + currentMenu);
   Serial.println(" Width: " + currentWidth);
-  
+
   //checking joystick and changing (and displaying) menu accordingly
   int joy = checkJoy();
   if(joyMemory != 0 && joy == 0){
@@ -193,7 +195,7 @@ void loop() {
     bikeHandControl();
   }
   else if(motorTestStatus){
-    updatePidHand();
+    runPidHand();
   }
 }
 //END MAIN OS LOOP
@@ -277,13 +279,17 @@ void standardHandControl(){
 }
 
 void solderHandControl(){
-  updateEmgAvg();
-  Serial.println(avgEmg);
+  digitalWrite(3, HIGH);
+  delay(10);
+  digitalWrite(3, LOW);
+  delay(10);
 }
 
 void bikeHandControl(){
-  updateEmgAvg();
-  Serial.println(avgEmg);
+    digitalWrite(5, HIGH);
+    delay(10);
+    digitalWrite(5, LOW);
+    delay(10);
 }
 
 //gets new emg value, replaces oldest emg value in cache, averages the cache, and saves the average to avgEmg
@@ -305,22 +311,26 @@ void updateEmgAvg(){
 
 }
 
-//gets new value from current sensing pin, computes pid loop with new data, and writes a new value to the driver. uses "myPID"
-void updatePidHand(){
+/*
+*
+* Ok, here's the PID function.
+* This function reads the analog pin,
+*
+*/
+
+void runPidHand(){
   input = analogRead(A6);
-  setpoint = 150;
-  myPID.Compute();
+  handPID.Compute();
   digitalWrite(5, HIGH);
   analogWrite(3, output);
 }
 
-void killPidOpenHand(){
+void stopPidHand(){
   //spin backwards slightly to open hand
-  setpoint = 0;
-  updatePidHand();
   digitalWrite(5, LOW);
   analogWrite(3, 100);
   delay(100);
+  //kill analog write function
   analogWrite(3, 0);
 }
 
@@ -345,15 +355,14 @@ void changeMenuVertical(int joy){
   if (currentMenu == 0){
     if(joy == 3){
       if(currentWidth == 0){ //turn off hand if left on in hand menu while moving vertical
-        setpoint = 0;
-        updatePidHand();
+        stopPidHand();
       }
       loadSettingsMenu(0);
     }
   }
   else if(currentMenu == 1){ //Standard hand menu
     if(joy == 3){
-      loadInfoMenu(0); 
+      loadInfoMenu(0);
     }
     else{
       loadHandMenu(0);
@@ -372,8 +381,7 @@ void changeMenuHorizontal(int joy){
     if(joy == 2){
       if(currentWidth == 0){
         //turning off hand if left on while menu changes
-        setpoint = 0;
-        updatePidHand();
+        stopPidHand();
         //normal menu change
         loadHandMenu(1);
       }
@@ -432,20 +440,14 @@ void changeMenuClick(){
   if(currentMenu == 2 && currentWidth == 1){ // if we click on the "test" menu item
     if(motorTestStatus){ // ...and if we're already running the motor (and looking to shut it off)
       //turn motor off
-      digitalWrite(5, LOW);
-      analogWrite(3, 100);
-      delay(100);
-      analogWrite(3, 0);
-      digitalWrite(5, HIGH);
-      setpoint = 0;
+      stopPidHand();
       motorTestStatus = false;
     }
     else{ // ..or we just navigated here and we're looking to test the motor and turn it on
-      setpoint = 150;
       motorTestStatus = true;
     }
   }
-  if(currentMenu == 2 && currentWidth == 2){
+  if(currentMenu == 2 && currentWidth == 2){ // if we click on the "logo" menu item
     if(logoViewStatus){
       loadInfoMenu(2);
       logoViewStatus = false;
@@ -482,7 +484,7 @@ void loadHandMenu(int width){ //0
     drawMenuItem(1, 2, 6, "SOLDER", true);
     drawMenuItem(2, 8, 6, "BIKE", false);
   }
- 
+
   //motorcycle MENU OPTION
   else if(width == 2){
     drawMenuItem(0, 8, 6, "HAND", false);
@@ -518,7 +520,7 @@ void loadSettingsMenu(int width){ //1
     drawMenuItem(1, 8, 6, "HOLD", true);
     drawMenuItem(2, 2, 6, "TEIRED", false);
   }
- 
+
   //motorcycle MENU OPTION
   else if(width == 2){
     drawMenuItem(0, 5, 6, "PULSE", false);
@@ -560,7 +562,7 @@ void loadInfoMenu(int width){ //2
     drawMenuItem(1, 8, 6, "TEST", false);
     drawMenuItem(2, 8, 6, "LOGO", true);
   }
- 
+
   //setting current screen:
   currentMenu = 2;
   currentWidth = width;
@@ -594,7 +596,6 @@ void drawMenuItem(int pos, int x, int y, String title, bool active){
     display.setCursor(xBOX+x, yBOX+y);
     display.print(title);
   }
-  
+
 
 }
-
