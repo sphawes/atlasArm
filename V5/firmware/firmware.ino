@@ -2,43 +2,101 @@
 //Copyright 2017
 //Written by Stephen Hawes
 //EMG Prosthetic Hand Firmware
-//Atlas Arm V4.0
+//Atlas Arm V5.0
 
+/* Pin Reference
+ * A4 - I2C Data / Hitch Analog Pin
+ * A5 - I2C Clock / Hitch Analog Pin
+ * A6 - Hitch Analog Pin
+ * A7 - EMG Signal
+ * D3 - PWM / Interrupt / Hitch Digital Pin
+ * D5 - PWM / Hitch Digital Pin
+ * 
+ * D4 - Joy Up
+ * D6 - Joy Down
+ * D7 - Joy Left
+ * D8 - Joy Right
+ * D9 - Joy Center Press
+ * 
+ * 
+ */
+
+/*
+ * 
+ *  LIBRARIES
+ * 
+ */
 //These libraries are from Adafruit that run the screen driver
-//The SPI library is also for this
-#include <Adafruit_ST7735.h>
+#include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 #include <SPI.h>
-//#include <SD.h>
-
+#include <Wire.h>
 //For storing calibration values
 #include <EEPROM.h>
-
 //For controlling grip strength
 #include <PID_v1.h>
 
-//Defining I2C pins for the screen and all I2C peripheral attachments
-#define I2C_SCK     3
-#define I2C_DTA     4
+
+
+static const unsigned char PROGMEM logo16_glcd_bmp[] =
+{ B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111,  
+  B10000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00000000, B11111110, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00000011, B11111111, B10000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00001111, B00000001, B11100000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00011100, B00000000, B01110000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00111000, B00000000, B00111000, B00000001, B10001001, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00110000, B00000000, B00011000, B00000001, B10001001, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B01100000, B00000000, B00001100, B00000011, B11011101, B00111000, B11100000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B01100000, B00000000, B00001100, B00000010, B01001001, B00001001, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B11000000, B00000000, B00000110, B00000011, B11001001, B00111000, B11000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B11000000, B00000000, B00000110, B00000110, B01101001, B01001000, B00100000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B11000000, B00000000, B00000110, B00000100, B00101101, B01111101, B11000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B11000000, B00000000, B00000110, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B11000000, B00010000, B00000110, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B11000000, B00010000, B00000110, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B11000000, B00111000, B00000110, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B01100000, B00111000, B00001100, B00000100, B00000000, B01000000, B00000000, B00001000, B00000000, B10000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B01100000, B01010100, B00001100, B00000100, B00000000, B01000000, B00000000, B00001000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00110000, B01010100, B00011000, B00000100, B00001110, B01110001, B10011101, B11011100, B11001110, B10011100, B01110000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00111000, B11010110, B00111000, B00000100, B00000010, B01001010, B01010000, B01001001, B00101000, B10100010, B10000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00011100, B10010010, B01110000, B00000100, B00001110, B01001010, B01010001, B11001001, B00101000, B10111110, B01100000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00001111, B10010011, B11100000, B00000100, B00010010, B01001010, B01010010, B01001001, B00101000, B10100000, B00010000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00000011, B11111111, B10000000, B00000111, B11011111, B01110001, B10010011, B11101100, B11001000, B10011100, B11100000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00000000, B01111100, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00000011, B00000001, B10000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00000111, B10111011, B11000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00000111, B00111001, B11000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00000001, B00111001, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B10000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000001,
+  B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111
+  };
+
+
 
 //Defining joystick digital pins
-#define joyUp       5
+#define joyUp       4
 #define joyDown     6
 #define joyLeft     7
 #define joyRight    8
 #define joyPress    9
 
 //Defining analog pins
-#define sphA1  A0
-#define sphA2  A1
-#define emg    A2
+#define sphA1  A4
+#define sphA2  A5
+#define sphA3  A6
+#define emg    A7
 
 //Defining digital pins
-#define sphD1  10
-#define sphD2  11
+#define sphD1  3
+#define sphD2  5
 
 //Defining size of EMG Cache
 #define emgCacheSize  10
+
+#define OLED_RESET A1
+
 
 /* Holds position of current menu.
  *  0=main menu
@@ -50,11 +108,13 @@
  *  6=calibrate menu
  */
 int currentMenu = 0;
-int currentHeight = 0;
+int currentWidth = 0;
+int currentHand = 0;
+bool motorTestStatus = false;
+bool logoViewStatus = false;
 
 //Joystick variables
 int joyMemory = 0;
-int joyDeadZoneTolerance = 100;
 
 //EMG variables
 int emgCache[emgCacheSize] = {0,0,0,0,0,0,0,0,0,0};
@@ -64,7 +124,6 @@ int emgCachePosition = 0;
 int summedCache = 0;
 int state = 0; //0 for open, 1 for light squeeze, 2 for hard squeeze
 int oldState = 0;
-
 
 //EEPROM
 //address in eeprom is 0
@@ -86,48 +145,35 @@ double setpoint = 0;
 double input = 0;
 double output = 0;
 
-
-
-//Creates a new tft object that we can use to write to the screen
-Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS,  TFT_DC, TFT_RST);
-
-PID myPID(&input, &output, &setpoint, Kp, Ki, Kd, DIRECT);
-//myPID.SetControllerDirection(DIRECT);
-
 void setup() {
-
+  
+  //Serial
   Serial.begin(9600);
+  Serial.println("ATLAS ARM V5.0");
 
+  //Display
+  Adafruit_SSD1306 display(OLED_RESET);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  display.drawBitmap(0, 0,  logo16_glcd_bmp, 128, 32, 1);
+  display.display();
+  delay(1000);
+  display.clearDisplay();
+  loadHandMenu(0);
 
+  //PID
+  PID myPID(&input, &output, &setpoint, Kp, Ki, Kd, DIRECT);
   myPID.SetMode(AUTOMATIC);
-
-  digitalWrite(dcDirection1, HIGH);
-  digitalWrite(dcDirection2, LOW);
-
-
-  //Initialize TFT screen
-  tft.initR(INITR_BLACKTAB);
-
-  //Accessing SD card
-//  Serial.print("Initializing SD card...");
-//  if (!SD.begin(SD_CS)) {
-//   Serial.println("Failed!");
-//    return;
-//  }
-  Serial.println("ATLAS ARM V2.0");
-
-  void setRotation(uint8_t rotation);
-
-  //Draw spashscreen
-//  bmpDraw("splashscreen.bmp", 0, 0);
-  loadMainMenu(0);
+  
 }
 
 void loop() {
-  //main loop of OS
+  //main loop of OS!
+  Serial.print("Menu: " + currentMenu);
+  Serial.println(" Width: " + currentWidth);
+  
+  //checking joystick and changing (and displaying) menu accordingly
   int joy = checkJoy();
-  //Serial.print(joy);
-  //Serial.println(currentMenu);
   if(joyMemory != 0 && joy == 0){
     joyMemory = 0;
   }
@@ -136,32 +182,19 @@ void loop() {
     joyMemory = joy;
   }
 
-
-  if(currentMenu == 1){ //if on standard hand menu
+  //running loops for specific menus
+  if(currentMenu == 0 && currentWidth == 0){ //if on standard hand menu
     standardHandControl();
-
-    //Serial.println(input);
-/*
-    if(setpoint == 0){
-      myPID.SetControllerDirection(REVERSE);
-      digitalWrite(dcDirection1, LOW);
-      digitalWrite(dcDirection2, HIGH);
-    }
-    else{
-      myPID.SetControllerDirection(DIRECT);
-      digitalWrite(dcDirection1, HIGH);
-      digitalWrite(dcDirection2, LOW);
-    }
-
-    updatePID();
-*/
   }
-
-  if(currentMenu == 2){ //if on solder hand menu
+  else if(currentMenu == 0 && currentWidth == 1){ //if on solder hand menu
     solderHandControl();
   }
-
-
+  else if(currentMenu == 0 && currentWidth == 2){
+    bikeHandControl();
+  }
+  else if(motorTestStatus){
+    updatePidHand();
+  }
 }
 //END MAIN OS LOOP
 
@@ -195,8 +228,15 @@ int checkJoy(){
 
 }
 
-void standardHandControl(){  //Get new EMG value from board,
-  updateEmg();
+void standardHandControl(){
+  /* loop run through for normal atlas arm peripheral
+   * D3 is pwm
+   * D5 is direction
+   * A6 is current sense
+   */
+
+  //Gather and analize emg data to update "setpoint" variable which will come into effect in Motor segment below
+  updateEmgAvg();
   Serial.println(avgEmg);
   if(avgEmg < eepromThreshold1){
     state = 0;
@@ -205,30 +245,22 @@ void standardHandControl(){  //Get new EMG value from board,
     state = 1;
   }
 
-  if(oldState == 0 && state == 1){
-    for(int i=0;i<20;i++){
-      updateEmg();
-      delay(10);
+  if(oldState == 0 && state == 1){ //think: only on the rising edge
+    delay(100);
+    for(int i=0;i<10;i++){
+      updateEmgAvg();
     }
     if(avgEmg > eepromThreshold1){
       if(setpoint == 0){
-        digitalWrite(dcDirection1, HIGH);
-        digitalWrite(dcDirection2, LOW);
-        analogWrite(dcSpeed, 255);
-        delay(500);
-        analogWrite(dcSpeed, 153);
-        setpoint = 1;
+        setpoint = 150;
       }
       else{
         setpoint = 0;
         //spin backwards slightly to open hand
-        digitalWrite(dcDirection1, LOW);
-        digitalWrite(dcDirection2, HIGH);
-        analogWrite(dcSpeed, 255);
-        delay(140);
-        analogWrite(dcSpeed, 0);
-        digitalWrite(dcDirection1, HIGH);
-        digitalWrite(dcDirection2, LOW);
+        digitalWrite(5, LOW);
+        analogWrite(3, 100);
+        delay(100);
+        analogWrite(3, 0);
       }
     }
     else{
@@ -238,17 +270,26 @@ void standardHandControl(){  //Get new EMG value from board,
 
   oldState = state;
 
+  //Change Motor PID in accordance with changes in EMG segment above
+
+  updatePidHand();
+
 }
 
 void solderHandControl(){
-  updateEmg();
+  updateEmgAvg();
+  Serial.println(avgEmg);
+}
+
+void bikeHandControl(){
+  updateEmgAvg();
   Serial.println(avgEmg);
 }
 
 //gets new emg value, replaces oldest emg value in cache, averages the cache, and saves the average to avgEmg
-void updateEmg(){
+void updateEmgAvg(){
   //bring in new emg data point and add to cache.
-  newEmg = analogRead(emgPin);
+  newEmg = analogRead(A7);
   summedCache = summedCache - emgCache[emgCachePosition];
   summedCache = summedCache + newEmg;
 
@@ -265,11 +306,22 @@ void updateEmg(){
 }
 
 //gets new value from current sensing pin, computes pid loop with new data, and writes a new value to the driver. uses "myPID"
-void updatePID(){
-  input = analogRead(dcCurrent);
+void updatePidHand(){
+  input = analogRead(A6);
+  setpoint = 150;
   myPID.Compute();
-  analogWrite(dcSpeed, output);
+  digitalWrite(5, HIGH);
+  analogWrite(3, output);
+}
 
+void killPidOpenHand(){
+  //spin backwards slightly to open hand
+  setpoint = 0;
+  updatePidHand();
+  digitalWrite(5, LOW);
+  analogWrite(3, 100);
+  delay(100);
+  analogWrite(3, 0);
 }
 
 /*
@@ -278,73 +330,38 @@ void updatePID(){
  *
  */
 void changeMenu(int joy){
-  if(joy == 1 || joy == 3){
+  if((joy == 1 || joy == 3) && motorTestStatus == false && logoViewStatus == false){
     changeMenuVertical(joy);
   }
-  else{
+  else if((joy == 2 || joy == 4) && motorTestStatus == false && logoViewStatus == false){
     changeMenuHorizontal(joy);
+  }
+  else if(joy == 5){
+    changeMenuClick();
   }
 }
 
 void changeMenuVertical(int joy){
-    if (currentMenu == 0){
-      if(currentHeight == 0){
-        if(joy == 3){
-          currentHeight = 1;
-          loadMainMenu(currentHeight);
-        }
+  if (currentMenu == 0){
+    if(joy == 3){
+      if(currentWidth == 0){ //turn off hand if left on in hand menu while moving vertical
+        setpoint = 0;
+        updatePidHand();
       }
-      else if (currentHeight == 1){
-        if(joy == 1){
-          currentHeight = 0;
-          loadMainMenu(currentHeight);
-        }
-        else{
-          currentHeight = 2;
-          loadMainMenu(currentHeight);
-        }
-      }
-      else if (currentHeight == 2){
-        if (joy == 1){
-          currentHeight = 1;
-          loadMainMenu(currentHeight);
-        }
-      }
+      loadSettingsMenu(0);
     }
+  }
   else if(currentMenu == 1){ //Standard hand menu
     if(joy == 3){
-      /*
-       *
-       * THIS SPACE IS FOR DOING VERTICAL STUFF IN THE STANDARD HAND MENU
-       */
+      loadInfoMenu(0); 
+    }
+    else{
+      loadHandMenu(0);
     }
   }
   else if(currentMenu == 2){ //Solder hand menu
-    if(joy == 3){
-      /*
-       * THIS SPACE FOR VERTICAL FEATURES IN SOLDER HAND MENU
-       */
-    }
-  }
-  else if (currentMenu == 3){ //threshold menu
-    if(joy == 4){
-      //WRITE NEW EEPROM VALUE
-      currentHeight=0;
-      loadMainMenu(currentHeight);
-    }
-  }
-  else if (currentMenu == 4){ //Hand select menu
-    if (currentHeight == 0){
-      if(joy == 3){
-        currentHeight = 1;
-        loadHandSelectMenu(currentHeight);
-      }
-    }
-    else if (currentHeight == 1){
-      if(joy == 1){
-        currentHeight = 0;
-        loadHandSelectMenu(currentHeight);
-      }
+    if(joy == 1){
+      loadSettingsMenu(0);
     }
   }
 
@@ -353,325 +370,231 @@ void changeMenuVertical(int joy){
 void changeMenuHorizontal(int joy){
   if (currentMenu == 0){
     if(joy == 2){
-      if(currentHeight == 0){
-        loadHandSelectMenu(0);
+      if(currentWidth == 0){
+        //turning off hand if left on while menu changes
+        setpoint = 0;
+        updatePidHand();
+        //normal menu change
+        loadHandMenu(1);
       }
-      else if(currentHeight == 1){
-        loadThresholdMenu(0);
+      else if(currentWidth == 1){
+        loadHandMenu(2);
       }
-      else{
-        loadVersionMenu(0);
+    }
+    else if(joy == 4){
+      if(currentWidth == 2){
+        loadHandMenu(1);
+      }
+      else if(currentWidth == 1){
+        loadHandMenu(0);
       }
     }
   }
   else if(currentMenu == 1){ //Standard hand menu
-    //Turn off motor
-    analogWrite(dcSpeed, 0);
-    digitalWrite(dcDirection1, HIGH);
-    digitalWrite(dcDirection2, LOW);
-
-    if(joy == 4){
-      //WIPE EMG CACHE
-      for(int i=0; i<emgCacheSize; i++){
-        emgCache[i] = 0;
+    if(joy == 2){
+      if(currentWidth == 0){
+        loadSettingsMenu(1);
       }
-
-      loadHandSelectMenu(0);
+      else if(currentWidth == 1){
+        loadSettingsMenu(2);
+      }
     }
-    else{
-      if(currentHeight == 0){
-        loadCalibrateMenu(0);
+    else if(joy == 4){
+      if(currentWidth == 2){
+        loadSettingsMenu(1);
       }
-      else if(currentHeight == 1){
-        //toggle to blah blah mode
-      }
-      else{
-        //toggle to last option
+      else if(currentWidth == 1){
+        loadSettingsMenu(0);
       }
     }
   }
   else if(currentMenu == 2){ //Solder hand menu
-    //Turn off motor
-    analogWrite(dcSpeed, 0);
-    digitalWrite(dcDirection1, HIGH);
-    digitalWrite(dcDirection2, LOW);
-    if(joy == 4){
-      loadHandSelectMenu(1);
-    }
-    else{
-      if(currentHeight == 0){
-        //toggle to threshold mode
+    if(joy == 2){
+      if(currentWidth == 0){
+        loadInfoMenu(1);
       }
-      else if(currentHeight == 1){
-        //toggle to blah blah mode
-      }
-      else{
-        //toggle to last option
+      else if(currentWidth == 1){
+        loadInfoMenu(2);
       }
     }
-  }
-  else if (currentMenu == 3){ //threshold menu
-    if(joy == 4){
-      //WRITE NEW EEPROM VALUE
-
-      loadMainMenu(1);
-    }
-  }
-  else if (currentMenu == 4){ //Hand select menu
-    if(joy == 4){
-      loadMainMenu(0);
-    }
-    else{
-      if(currentHeight == 0){
-        loadHandMenu(0);
+    else if(joy == 4){
+      if(currentWidth == 2){
+        loadInfoMenu(1);
       }
-      else{
-        loadSolderMenu(0);
+      else if(currentWidth == 1){
+        loadInfoMenu(0);
       }
-    }
-  }
-  else if(currentMenu == 5){ //Version Menu
-    if(joy == 4){
-      digitalWrite(dcDirection1, LOW);
-      digitalWrite(dcDirection2, HIGH);
-      analogWrite(dcSpeed, 255);
-      delay(140);
-      analogWrite(dcSpeed, 0);
-      digitalWrite(dcDirection1, HIGH);
-      digitalWrite(dcDirection2, LOW);
-
-      loadMainMenu(2);
     }
   }
 }
 
-void loadMainMenu(int height){ //0
-  //Draw Header
-  drawBackgroundAndHeader();
+void changeMenuClick(){
+  if(currentMenu == 2 && currentWidth == 1){ // if we click on the "test" menu item
+    if(motorTestStatus){ // ...and if we're already running the motor (and looking to shut it off)
+      //turn motor off
+      digitalWrite(5, LOW);
+      analogWrite(3, 100);
+      delay(100);
+      analogWrite(3, 0);
+      digitalWrite(5, HIGH);
+      setpoint = 0;
+      motorTestStatus = false;
+    }
+    else{ // ..or we just navigated here and we're looking to test the motor and turn it on
+      setpoint = 150;
+      motorTestStatus = true;
+    }
+  }
+  if(currentMenu == 2 && currentWidth == 2){
+    if(logoViewStatus){
+      loadInfoMenu(2);
+      logoViewStatus = false;
+    }
+    else{
+      display.clearDisplay();
+      display.drawBitmap(0, 0,  logo16_glcd_bmp, 128, 32, 1);
+      logoViewStatus = true;
+      display.display();
+    }
+  }
+}
 
-  //Title
-  tft.setCursor(25, (tft.height()/9) + 3);
-  tft.setTextColor(ST7735_WHITE);
-  tft.setTextSize(2);
-  tft.print("Main Menu");
+void loadHandMenu(int width){ //0
+  //clear display
+  display.clearDisplay();
+  //write header
+  display.fillRect(0, 0, 128, 9, WHITE);
+  display.setTextSize(1);
+  display.setTextColor(BLACK);
+  display.setCursor(1,1);
+  display.print("Atlas Arm");
 
   //HAND MENU OPTION
-  if(height == 0){
-    drawMenuOption(ST7735_WHITE, ST7735_BLACK, 5, 40, "Hand Select");
+  if(width == 0){
+    drawMenuItem(0, 8, 6, "HAND", true);
+    drawMenuItem(1, 2, 6, "SOLDER", false);
+    drawMenuItem(2, 8, 6, "BIKE", false);
 
   }
-  else{
-    drawMenuOption(ST7735_RED, ST7735_BLACK, 5, 40, "Hand Select");
-
+  //solder hand MENU OPTION
+  else if(width == 1){
+    drawMenuItem(0, 8, 6, "HAND", false);
+    drawMenuItem(1, 2, 6, "SOLDER", true);
+    drawMenuItem(2, 8, 6, "BIKE", false);
   }
-
-  //THRESHOLD MENU OPTION
-  if(height == 1){
-    drawMenuOption(ST7735_WHITE, ST7735_BLACK, 5, 70, "Threshold");
+ 
+  //motorcycle MENU OPTION
+  else if(width == 2){
+    drawMenuItem(0, 8, 6, "HAND", false);
+    drawMenuItem(1, 2, 6, "SOLDER", false);
+    drawMenuItem(2, 8, 6, "BIKE", true);
   }
-  else{
-    drawMenuOption(ST7735_RED, ST7735_BLACK, 5, 70, "Threshold");
-  }
-  //VERSION MENU OPTION
-  if(height == 2){
-    drawMenuOption(ST7735_WHITE, ST7735_BLACK, 5, 100, "Version");
-  }
-  else{
-    drawMenuOption(ST7735_RED, ST7735_BLACK, 5, 100, "Version");
-  }
-
-
-
   //setting current screen:
   currentMenu = 0;
-  currentHeight = height;
+  currentWidth = width;
+  display.display();
 }
 
-void loadHandMenu(int height){ //1
-  //Draw Header
-  drawBackgroundAndHeader();
-
-  //Title
-  tft.setCursor(25, (tft.height()/9) + 3);
-  tft.setTextColor(ST7735_WHITE);
-  tft.setTextSize(2);
-  tft.print("Pulse");
-
-  if(height == 0){
-    drawMenuOption(ST7735_WHITE, ST7735_BLACK, 5, 40, "Calibrate");
-  }
-  else{
-    drawMenuOption(ST7735_RED, ST7735_BLACK, 5, 40, "Calibrate");
-  }
-
-
-  //setting current screen:
-  currentMenu = 1;
-  currentHeight = height;
-
-}
-
-void loadSolderMenu(int height){ //2
-  //Draw Header
-  drawBackgroundAndHeader();
-
-    //Title
-  tft.setCursor(25, (tft.height()/9) + 3);
-  tft.setTextColor(ST7735_WHITE);
-  tft.setTextSize(2);
-  tft.print("Hold");
-
-
-  //setting current screen:
-  currentMenu = 2;
-  currentHeight = height;
-
-}
-
-void loadThresholdMenu(int height){ //3
-  //Draw Header
-  drawBackgroundAndHeader();
-
-  //setting current screen:
-  currentMenu = 3;
-  currentHeight = height;
-
-    //Title
-  tft.setCursor(15, (tft.height()/9) + 4);
-  tft.setTextColor(ST7735_WHITE);
-  tft.setTextSize(2);
-  tft.print("Threshold");
-
-  //First Threshold OPTION
-  if(height == 0){
-    drawMenuOption(ST7735_WHITE, ST7735_BLACK, 5, 40, "One");
-  }
-  else{
-    drawMenuOption(ST7735_RED, ST7735_BLACK, 5, 40, "One");
-  }
-
-  //Second Threshold OPTION
-  if(height == 1){
-    drawMenuOption(ST7735_WHITE, ST7735_BLACK, 5, 70, "Two");
-  }
-  else{
-    drawMenuOption(ST7735_RED, ST7735_BLACK, 5, 70, "Two");
-  }
-
-}
-
-void loadHandSelectMenu(int height){ //4
-  //Draw Header
-  drawBackgroundAndHeader();
-
-  //Title
-  tft.setCursor(15, (tft.height()/9) + 4);
-  tft.setTextColor(ST7735_WHITE);
-  tft.setTextSize(2);
-  tft.print("Mode Select");
+void loadSettingsMenu(int width){ //1
+  //clear display
+  display.clearDisplay();
+  //write header
+  display.fillRect(0, 0, 128, 9, WHITE);
+  display.setTextSize(1);
+  display.setTextColor(BLACK);
+  display.setCursor(1,1);
+  display.print("Settings");
 
   //HAND MENU OPTION
-  if(height == 0){
-    drawMenuOption(ST7735_WHITE, ST7735_BLACK, 5, 40, "Pulse");
+  if(width == 0){
+    drawMenuItem(0, 5, 6, "PULSE", true);
+    drawMenuItem(1, 8, 6, "HOLD", false);
+    drawMenuItem(2, 2, 6, "TEIRED", false);
+
+  }
+  //solder hand MENU OPTION
+  else if(width == 1){
+    drawMenuItem(0, 5, 6, "PULSE", false);
+    drawMenuItem(1, 8, 6, "HOLD", true);
+    drawMenuItem(2, 2, 6, "TEIRED", false);
+  }
+ 
+  //motorcycle MENU OPTION
+  else if(width == 2){
+    drawMenuItem(0, 5, 6, "PULSE", false);
+    drawMenuItem(1, 8, 6, "HOLD", false);
+    drawMenuItem(2, 2, 6, "TEIRED", true);
+  }
+  //setting current screen:
+  currentMenu = 1;
+  currentWidth = width;
+  display.display();
+
+}
+
+void loadInfoMenu(int width){ //2
+  //clear display
+  display.clearDisplay();
+  //write header
+  display.fillRect(0, 0, 128, 9, WHITE);
+  display.setTextSize(1);
+  display.setTextColor(BLACK);
+  display.setCursor(1,1);
+  display.print("Info");
+
+  //HAND MENU OPTION
+  if(width == 0){
+    drawMenuItem(0, 5, 6, "STATS", true);
+    drawMenuItem(1, 8, 6, "TEST", false);
+    drawMenuItem(2, 8, 6, "LOGO", false);
+
+  }
+  //solder hand MENU OPTION
+  else if(width == 1){
+    drawMenuItem(0, 5, 6, "STATS", false);
+    drawMenuItem(1, 8, 6, "TEST", true);
+    drawMenuItem(2, 8, 6, "LOGO", false);
+  }
+  else if(width == 2){
+    drawMenuItem(0, 5, 6, "STATS", false);
+    drawMenuItem(1, 8, 6, "TEST", false);
+    drawMenuItem(2, 8, 6, "LOGO", true);
+  }
+ 
+  //setting current screen:
+  currentMenu = 2;
+  currentWidth = width;
+  display.display();
+
+}
+
+void drawMenuItem(int pos, int x, int y, String title, bool active){
+  int yBOX=11;
+  int xBOX;
+  if(pos == 0){
+    xBOX = 1;
+  }
+  else if(pos == 1){
+    xBOX = 44;
+  }
+  else if(pos == 2){
+    xBOX = 87;
+  }
+  if(active){
+    display.fillRoundRect(xBOX, yBOX, 40, 20, 3, WHITE);
+    display.setTextSize(1);
+    display.setTextColor(BLACK);
+    display.setCursor(xBOX+x, yBOX+y);
+    display.print(title);
   }
   else{
-    drawMenuOption(ST7735_RED, ST7735_BLACK, 5, 40, "Pulse");
+    display.drawRoundRect(xBOX, yBOX, 40, 20, 3, WHITE);
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(xBOX+x, yBOX+y);
+    display.print(title);
   }
-
-  //THRESHOLD MENU OPTION
-  if(height == 1){
-    drawMenuOption(ST7735_WHITE, ST7735_BLACK, 5, 70, "Hold");
-  }
-  else{
-    drawMenuOption(ST7735_RED, ST7735_BLACK, 5, 70, "Hold");
-  }
-
-  //setting current screen:
-  currentMenu = 4;
-  currentHeight = height;
+  
 
 }
 
-void loadVersionMenu(int height){ //5
-  //Draw Header
-  drawBackgroundAndHeader();
-
-  //Title
-  tft.setCursor(15, (tft.height()/9) + 4);
-  tft.setTextColor(ST7735_WHITE);
-  tft.setTextSize(1);
-  tft.println("Atlas Arm Version 2.0");
-  tft.println("Copyright Atlas Laboratories, LLC");
-  tft.println("2016");
-  tft.println("www.atlas-laboratories.com");
-
-  digitalWrite(dcDirection1, HIGH);
-  digitalWrite(dcDirection2, LOW);
-  analogWrite(dcSpeed, 255);
-  delay(500);
-  analogWrite(dcSpeed, 153);
-
-  //setting current screen:
-  currentMenu = 5;
-  currentHeight = height;
-}
-
-void loadCalibrateMenu(int height){ //6
-  //Draw Header
-  drawBackgroundAndHeader();
-
-  //Title
-  tft.setCursor(15, (tft.height()/9) + 4);
-  tft.setTextColor(ST7735_WHITE);
-  tft.setTextSize(1);
-  tft.print("CALIBRATING, RELAX ARM");
-
-  //Give user a second to relax
-  delay(1000);
-
-  int calibrateTotal = 0;
-
-  for(int i=0;i<200;i++){
-    updateEmg();
-    calibrateTotal = calibrateTotal + avgEmg;
-    delay(10);
-  }
-
-  eepromNeutral = calibrateTotal / 200;
-
-  //SET VALUE INTO EEPROM
-  EEPROM.write(2, eepromNeutral);
-
-  //setting current screen:
-  currentMenu = 6;
-  currentHeight = height;
-
-  //SEND BACK TO HAND MENU
-  loadHandMenu(0);
-
-}
-
-void drawBackgroundAndHeader(){
-
-  tft.fillScreen(ST7735_BLACK);
-  tft.setRotation(1);
-
-  tft.fillRect(0, 0, tft.width(), 13, ST7735_RED);
-  tft.setCursor(3,3);
-  tft.setTextColor(ST7735_BLACK);
-  tft.setTextWrap(true);
-  tft.setTextSize(1);
-  tft.print("ATLAS ARM V2.0 ");
-
-  tft.setCursor(133, 3);
-  tft.print("BETA");
-
-}
-
-void drawMenuOption(uint16_t bgColor, uint16_t textColor, int xPos, int yPos, String text){
-  tft.fillRoundRect(xPos, yPos, 148, 20, 3, bgColor);
-  tft.setCursor(xPos+3, yPos+3);
-  tft.setTextColor(textColor);
-  tft.print(text);
-
-}
