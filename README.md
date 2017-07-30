@@ -37,11 +37,13 @@ The ATLAS Arm was designed to be completely customizable for any mid-forearm amp
 9. Assemble the hand.
     a. Insert M4 heat-set inserts into the back of each finger using a soldering iron until the insert is completely clear of the slot for the Ninjaflex joint.
     b. Slide each finger onto their respective Ninjaflex joints and secure the fingers using an M4x10mm machine screw and a M4 washer. You will have to puncture the Ninjaflex joint before attempting to screw through it.
-    c. String up each finger. Cut five lengths of fishing line one foot long, and feed them from the tip of each finger into the motor cavity in the back of the palm. Tie off the fishing line at the tip of each finger, but do not cut off the excess.
-    d. Solder the leads of the motor to the appropriate pins on the motor driver board, and glue the spool onto the spindle of the motor using superglue (CA glue). Glue the ends of the five lengths of fishing line to the inside of the spool. After drying, wrap the cabling once more around the spool and fit the motor into it's cavity. 
+    c. String up each finger. Cut five lengths of fishing line one foot long, and feed them from the tip of each finger into the motor cavity in the back of the palm. Tie off the fishing line at the tip of each finger with a loose knot, but do not cut off the excess.
+    d. Solder the leads of the motor to the appropriate pins on the motor driver board, and glue the spool onto the spindle of the motor using CA glue. Glue the ends of the five lengths of fishing line to the inside of the spool. After drying, wrap the cabling once more around the spool and fit the motor into it's cavity.
+    e. Loosen the knots at the ends of the fingers, and tighten each one so that each finger is slightly bent forward and under tension. Glue the knots secure with CA glue and trim the excess.
+    f. Wire the necessary pins from the motor driver to the pinout at the base of the palm, then glue the pinout into place.
 
-9. Make the Core Module. Follow the schematic in the "Hardware" folder using parts from the Bill of Materials. Print the enclosure and cap for the Core Module found in the "CAD" folder.
+10. Make the Core Module. Follow the schematic in the "Hardware" folder using parts from the Bill of Materials. Print the enclosure and cap for the Core Module found in the "CAD" folder. Use the CAD model in Fusion 360 as reference. 
 
-10. Edit firmware. A few example firmware files are provided. If the device will only be using the standard ATLAS Arm prosthetic hand attachment, then "firmwareHandOnly.ino" can be used as is.
+11. Edit firmware. A few example firmware files are provided. If the device will only be using the standard ATLAS Arm prosthetic hand attachment, then "firmwareHandOnly.ino" can be used as is.
 
-11.
+12.
