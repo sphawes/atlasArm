@@ -1,9 +1,9 @@
 # ATLAS Arm - EMG Prosthetic Hand
-The ATLAS (Articulating Tactile Limb Amputation Supplement) Arm is a 3D Printable, muscle-controlled prosthetic hand that can be manufactured for under $300.
+The ATLAS (Articulating Tactile Limb Amputation Supplement) Arm is a 3D Printable, muscle-controlled prosthetic hand that can be manufactured for under $250 in consumable materials.
 
 The ATLAS Arm started as an [IDEA Grant](http://ugradresearch.uconn.edu/idea/) project at the University of Connecticut by [Stephen Hawes](http://www.stephenhawes.com). Stephen documented the first six versions of the hand in a YouTube [video series](https://www.youtube.com/playlist?list=PLIeJXmcg1baLB6wgaJ4MkH0-Whnp8Us2D).
 
-##Instructions
+## Instructions
 ------
 The ATLAS Arm was designed to be completely customizable for any mid-forearm amputee to use. Only a few tools are necessary to create one at home, and about $250 in materials, all listed in the Bill of Materials document.
 
@@ -12,14 +12,14 @@ The ATLAS Arm was designed to be completely customizable for any mid-forearm amp
 2. Using Skanect and the Kinect sensor, take a 3D scan of the remaining forearm of the amputee for which the arm is being made. Take two scans: One with a 90 degree bend at the elbow, and another with the forearm straight. Save as an .obj file.
 
 3. Take 8 measurements of the amputee's remaining hand using millimeters as a unit. These measurements are as follows:
-  1. P1 - distance from the rotational center of the third knuckle to the rotational center of the second knuckle on the index finger.
-  2. Px - Width of the palm (from base of index finger to base of pinky).
-  3. Py - Length of the palm (from wrist to third knuckle).
-  4. Pz - Thickness of the palm.
-  5. Wx - Width of wrist (in direction of thumb to pinky).
-  6. Wz - Thickness of wrist.
-  7. Ff - Full length of forearm (from wrist to rotational center of the elbow).
-  8. Fa - Length of remaining forearm (from end of amputation to rotational center of the elbow.)
+  - P1 - distance from the rotational center of the third knuckle to the rotational center of the second knuckle on the index finger.
+  - Px - Width of the palm (from base of index finger to base of pinky).
+  - Py - Length of the palm (from wrist to third knuckle).
+  - Pz - Thickness of the palm.
+  - Wx - Width of wrist (in direction of thumb to pinky).
+  - Wz - Thickness of wrist.
+  - Ff - Full length of forearm (from wrist to rotational center of the elbow).
+  - Fa - Length of remaining forearm (from end of amputation to rotational center of the elbow.)
 
 4. Load the "Atlas Arm" Fusion 360 file. Save your own copy of the file to your Autodesk cloud and rename it to the name of the amputee, or some other distinguishable title. Then, edit the new file in the following ways:
   1. Under the "Modify" menu, select "Change Parameters" option with the sigma icon.
@@ -46,4 +46,4 @@ The ATLAS Arm was designed to be completely customizable for any mid-forearm amp
 
 11. Edit firmware. A few example firmware files are provided. If the device will only be using the standard ATLAS Arm prosthetic hand attachment, then "firmwareHandOnly.ino" can be used as is.
 
-12. 
+12.
