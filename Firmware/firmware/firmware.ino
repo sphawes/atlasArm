@@ -12,11 +12,11 @@
  * D3 - PWM / Interrupt / Hitch Digital Pin
  * D5 - PWM / Hitch Digital Pin
  *
- * D4 - Joy Up
- * D6 - Joy Down
- * D7 - Joy Left
- * D8 - Joy Right
- * D9 - Joy Center Press
+ * D4 - Joy Up (A)
+ * D6 - Joy Down (C)
+ * D7 - Joy Left (B)
+ * D8 - Joy Right (D)
+ * D9 - Joy Center Press (Center)
  *
  *
  */
@@ -158,7 +158,7 @@ void setup() {
   Serial.println("ATLAS ARM V5.0");
 
   //Display
-  
+
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
   display.drawBitmap(0, 0,  logo16_glcd_bmp, 128, 32, 1);

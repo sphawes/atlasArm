@@ -42,8 +42,8 @@ The ATLAS Arm was designed to be completely customizable for any mid-forearm amp
     e. Loosen the knots at the ends of the fingers, and tighten each one so that each finger is slightly bent forward and under tension. Glue the knots secure with CA glue and trim the excess.
     f. Wire the necessary pins from the motor driver to the pinout at the base of the palm, then glue the pinout into place.
 
-10. Make the Core Module. Follow the schematic in the "Hardware" folder using parts from the Bill of Materials. Print the enclosure and cap for the Core Module found in the "CAD" folder. Use the CAD model in Fusion 360 as reference. 
+10. Make the Core Module. Follow the schematic in the "Hardware" folder using parts from the Bill of Materials. Print the enclosure and cap for the Core Module found in the "CAD" folder. Use the CAD model in Fusion 360 as reference.
 
 11. Edit firmware. A few example firmware files are provided. If the device will only be using the standard ATLAS Arm prosthetic hand attachment, then "firmwareHandOnly.ino" can be used as is.
 
-12.
+12. 

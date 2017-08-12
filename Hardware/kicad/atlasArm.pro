@@ -1,4 +1,4 @@
-update=Saturday, July 29, 2017 'PMt' 06:37:03 PM
+update=Sunday, July 30, 2017 'PMt' 05:23:34 PM
 version=1
 last_client=kicad
 [pcbnew]
@@ -59,3 +59,6 @@ LibName27=atmel
 LibName28=contrib
 LibName29=valves
 LibName30=/Users/stephen/Downloads/arduino/arduino
+LibName31=sphParts
+LibName32=switches
+LibName33=Arduino_Nano/Arduino_Nano-cache
