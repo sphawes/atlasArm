@@ -12,19 +12,19 @@ The ATLAS Arm was designed to be completely customizable for any mid-forearm amp
 2. Using Skanect and the Kinect sensor, take a 3D scan of the remaining forearm of the amputee for which the arm is being made. Take two scans: One with a 90 degree bend at the elbow, and another with the forearm straight. Save as an .obj file.
 
 3. Take 8 measurements of the amputee's remaining hand using millimeters as a unit. These measurements are as follows:
-  - P1 - distance from the rotational center of the third knuckle to the rotational center of the second knuckle on the index finger.
-  - Px - Width of the palm (from base of index finger to base of pinky).
-  - Py - Length of the palm (from wrist to third knuckle).
-  - Pz - Thickness of the palm.
-  - Wx - Width of wrist (in direction of thumb to pinky).
-  - Wz - Thickness of wrist.
-  - Ff - Full length of forearm (from wrist to rotational center of the elbow).
-  - Fa - Length of remaining forearm (from end of amputation to rotational center of the elbow.)
+    - P1 - distance from the rotational center of the third knuckle to the rotational center of the second knuckle on the index finger.
+    - Px - Width of the palm (from base of index finger to base of pinky).
+    - Py - Length of the palm (from wrist to third knuckle).
+    - Pz - Thickness of the palm.
+    - Wx - Width of wrist (in direction of thumb to pinky).
+    - Wz - Thickness of wrist.
+    - Ff - Full length of forearm (from wrist to rotational center of the elbow).
+    - Fa - Length of remaining forearm (from end of amputation to rotational center of the elbow.)
 
 4. Load the "Atlas Arm" Fusion 360 file. Save your own copy of the file to your Autodesk cloud and rename it to the name of the amputee, or some other distinguishable title. Then, edit the new file in the following ways:
-  - Under the "Modify" menu, select "Change Parameters" option with the sigma icon.
-  - Enter in your new values for Px, Py, Pz, P1, Wx, and Wz.
-  - If the model fails to render, it is possible that the design does not scale properly for the dimensions given. The timeline at the bottom can be rolled back to see where the error occurred, and fixed.
+    - Under the "Modify" menu, select "Change Parameters" option with the sigma icon.
+    - Enter in your new values for Px, Py, Pz, P1, Wx, and Wz.
+    - If the model fails to render, it is possible that the design does not scale properly for the dimensions given. The timeline at the bottom can be rolled back to see where the error occurred, and fixed.
 
 5. Export the following components as separate STL files: 1, 2, 3, 4, 5, 1joints, 2joints, 3joints, 4joints, 5joint, palm, and palmJoints. This can be done by clicking on the component in the list on the left, then clicking "3D Print" in the "Make" menu.
 
