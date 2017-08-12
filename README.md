@@ -19,7 +19,7 @@ The ATLAS Arm was designed to be completely customizable for any mid-forearm amp
     - Wx - Width of wrist (in direction of thumb to pinky).
     - Wz - Thickness of wrist.
     - Ff - Full length of forearm (from wrist to rotational center of the elbow).
-    - Fa - Length of remaining forearm (from end of amputation to rotational center of the elbow.)
+    - Fa - Length of remaining forearm (from end of amputation to rotational center of the elbow.) 
 
 4. Load the "Atlas Arm" Fusion 360 file. Save your own copy of the file to your Autodesk cloud and rename it to the name of the amputee, or some other distinguishable title. Then, edit the new file in the following ways:
     - Under the "Modify" menu, select "Change Parameters" option with the sigma icon.
