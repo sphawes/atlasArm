@@ -1,0 +1,4 @@
+-add eeprom functionality
+-finish readme
+-export standard stl files and save to CAD folder
+-finish building version 5

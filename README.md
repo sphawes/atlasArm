@@ -4,10 +4,9 @@ The ATLAS (Articulating Tactile Limb Amputation Supplement) Arm is a 3D Printabl
 The ATLAS Arm started as an [IDEA Grant](http://ugradresearch.uconn.edu/idea/) project at the University of Connecticut by [Stephen Hawes](http://www.stephenhawes.com). Stephen documented the first six versions of the hand in a YouTube [video series](https://www.youtube.com/playlist?list=PLIeJXmcg1baLB6wgaJ4MkH0-Whnp8Us2D).
 
 ## Instructions
-------
 The ATLAS Arm was designed to be completely customizable for any mid-forearm amputee to use. Only a few tools are necessary to create one at home, and about $250 in materials, all listed in the Bill of Materials document.
 
-1. Using the Advancer Technologies EMG sensor, test sensor pad locations using the test.ino script in the CAD folder in the Github Repo. Description of how this is done is a comment at the top of the test.ino file. Once you've found the ideal locations, mark the Reference, End, and Middle of the muscle with R, E, and M respectively. Do so with a fine-point Sharpie in small text.
+1. Using the Advancer Technologies EMG sensor, test sensor pad locations using the test.ino script in the CAD folder in the Github Repo. Description of how this is done is a comment at the top of the findPadLocation.ino file. Once you've found the ideal locations, mark the Reference, End, and Middle of the muscle with R, E, and M respectively. Do so with a fine-point Sharpie in small text.
 
 2. Using Skanect and the Kinect sensor, take a 3D scan of the remaining forearm of the amputee for which the arm is being made. Take two scans: One with a 90 degree bend at the elbow, and another with the forearm straight. Save as an .obj file.
 
@@ -19,7 +18,7 @@ The ATLAS Arm was designed to be completely customizable for any mid-forearm amp
     - Wx - Width of wrist (in direction of thumb to pinky).
     - Wz - Thickness of wrist.
     - Ff - Full length of forearm (from wrist to rotational center of the elbow).
-    - Fa - Length of remaining forearm (from end of amputation to rotational center of the elbow.) 
+    - Fa - Length of remaining forearm (from end of amputation to rotational center of the elbow.)
 
 4. Load the "Atlas Arm" Fusion 360 file. Save your own copy of the file to your Autodesk cloud and rename it to the name of the amputee, or some other distinguishable title. Then, edit the new file in the following ways:
     - Under the "Modify" menu, select "Change Parameters" option with the sigma icon.
